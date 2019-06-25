@@ -13,7 +13,7 @@ def get_config(training = True):
     conf.save_path = conf.work_path/'save'
     conf.input_size = [112,112]
     conf.embedding_size = 512
-    conf.use_mobilfacenet = False
+    conf.use_mobilfacenet = True
     conf.net_depth = 50
     conf.drop_ratio = 0.6
     conf.net_mode = 'ir_se' # or 'ir'
@@ -26,7 +26,7 @@ def get_config(training = True):
     conf.vgg_folder = conf.data_path/'faces_vgg_112x112'
     conf.ms1m_folder = conf.data_path/'faces_ms1m_112x112'
     conf.emore_folder = conf.data_path/'faces_emore'
-    conf.batch_size = 100 # irse net depth 50 
+    conf.batch_size = 512 # irse net depth 50 
 #   conf.batch_size = 200 # mobilefacenet
 #--------------------Training Config ------------------------    
     if training:        

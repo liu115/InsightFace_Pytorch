@@ -11,6 +11,7 @@ import pickle
 import torch
 import mxnet as mx
 from tqdm import tqdm
+import os
 
 def de_preprocess(tensor):
     return tensor*0.5 + 0.5
@@ -66,10 +67,60 @@ def load_bin(path, rootdir, transform, image_size=[112,112]):
     np.save(str(rootdir)+'_list', np.array(issame_list))
     return data, issame_list
 
-def get_val_pair(path, name):
-    carray = bcolz.carray(rootdir = path/name, mode='r')
-    issame = np.load(path/'{}_list.npy'.format(name))
-    return carray, issame
+def get_val_pair(path, transform):
+    '''
+    input
+    path: the dir of pairs.txt
+    transform: transform of images
+    
+    output
+    data: tensor of size(2N,3,112,112)
+    label: tensor of size(N)
+    
+    '''
+    pairs_file = open(path +'/pairs.txt','r')
+    data = []
+    label = []
+    for i,line in enumerate(pairs_file):
+        
+        # Read Dataset
+        d = line.split('\t')
+        
+        name1 = d[0].strip()
+        id1 = d[1].strip()
+        if len(d)== 3: 
+            label.append(1)
+            name2 = name1            
+            id2 = d[2].strip()
+        elif len(d)==4: 
+            label.append(0)
+            name2 = d[2].strip()
+            id2 = d[3].strip()
+            
+        ## Read Image 
+        img1 = cv2.imread(path+'/facebank/'+name1+'/'+name1+'_'+id1+'.jpg',cv2.IMREAD_COLOR)
+        img2 = cv2.imread(path+'/facebank/'+name2+'/'+name2+'_'+id2+'.jpg',cv2.IMREAD_COLOR)
+       
+        img1 = cv2.cvtColor(img1, cv2.COLOR_RGB2BGR)
+        img1 = Image.fromarray(img1.astype(np.uint8))
+        
+        img2 = cv2.cvtColor(img2, cv2.COLOR_RGB2BGR)
+        img2 = Image.fromarray(img2.astype(np.uint8))
+        
+        data.append(transform(img1))
+        data.append(transform(img2))
+       
+        
+        i += 1
+        if i % 1000 == 0:
+            print('loading images', i)            
+                       
+    
+    data = np.stack(data)
+    issame = np.array(label)
+    print("data shape:",data.shape)
+    print("issame shape:", issame.shape)
+    return data, issame
 
 def get_val_data(data_path):
     agedb_30, agedb_30_issame = get_val_pair(data_path, 'agedb_30')
