@@ -15,6 +15,7 @@ import math
 import bcolz
 
 class face_learner(object):
+   
     def __init__(self, conf, inference=False):
         print(conf)
         if conf.use_mobilfacenet:
@@ -78,12 +79,20 @@ class face_learner(object):
         if from_save_folder:
             save_path = conf.save_path
         else:
-            save_path = conf.model_path            
-        self.model.load_state_dict(torch.load(save_path/'model_{}'.format(fixed_str)))
+            save_path = conf.model_path   
+        if conf.use_mobilfacenet:
+            self.model.load_state_dict(torch.load(save_path/'mobilenet_{}'.format(fixed_str)))
+        else:
+            self.model.load_state_dict(torch.load(save_path/'ir_se50_{}'.format(fixed_str)))
         if not model_only:
             self.head.load_state_dict(torch.load(save_path/'head_{}'.format(fixed_str)))
             self.optimizer.load_state_dict(torch.load(save_path/'optimizer_{}'.format(fixed_str)))
-        
+                   
+    def get_params_num(self):
+        pytorch_total_params = sum(p.numel() for p in self.model.parameters())
+        pytorch_total_trainable_params = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
+        return pytorch_total_params, pytorch_total_trainable_params
+    
     def board_val(self, db_name, accuracy, best_threshold, roc_curve_tensor):
         self.writer.add_scalar('{}_accuracy'.format(db_name), accuracy, self.step)
         self.writer.add_scalar('{}_best_threshold'.format(db_name), best_threshold, self.step)

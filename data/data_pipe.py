@@ -74,8 +74,8 @@ def get_val_pair(path, transform):
     transform: transform of images
     
     output
-    data: tensor of size(2N,3,112,112)
-    label: tensor of size(N)
+    data: numpy array of size(2N,3,112,112)
+    label: numpy array of size(N)
     
     '''
     pairs_file = open(path +'/pairs.txt','r')
